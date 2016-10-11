@@ -17,7 +17,7 @@ public class ProductController {
     @Autowired
     private ProductRepository productRepository;
 
-    @RequestMapping("/products")
+    @RequestMapping(method=RequestMethod.GET, value="/products")
     public List<Product> getProducts() {
         List<Product> products = new ArrayList<Product>();
         productRepository.findAll().forEach((item) -> {
@@ -27,7 +27,7 @@ public class ProductController {
         return products;
     }
 
-    @RequestMapping(method= RequestMethod.POST, value = "/products")
+    @RequestMapping(method=RequestMethod.POST, value = "/products")
     public void createProduct(@RequestBody Product product) {
     	productRepository.save(product);
     }
