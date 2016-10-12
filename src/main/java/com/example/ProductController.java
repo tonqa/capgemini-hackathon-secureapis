@@ -12,8 +12,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class ProductController {
 
-    private static final String template = "Hello, %s!";
-
     @Autowired
     private ProductRepository productRepository;
 
