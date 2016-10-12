@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.internal.filter.ValueNode.JsonNode;
 
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.MalformedJwtException;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
@@ -22,6 +23,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Enumeration;
+import java.util.Map;
 
 /**
  * Filter that orchestrates authentication by using supplied JWT token
@@ -33,8 +35,7 @@ public class JwtAuthenticationTokenFilter extends AbstractAuthenticationProcessi
     @Value("${jwt.header}")
     private String tokenHeader;
 
-    @Value("${jwt.secret}")
-    private String secret;
+    private ObjectMapper objectMapper = new ObjectMapper();
 
     public JwtAuthenticationTokenFilter() {
         super("/**");
@@ -70,14 +71,23 @@ public class JwtAuthenticationTokenFilter extends AbstractAuthenticationProcessi
         String[] tokenArr = authToken.split("\\.");
         String body = new String(Base64Utils.decodeFromString(tokenArr[1]), "UTF-8");
 
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode bodyObj = mapper.readValue(body, JsonNode.class);
-        // TODO: parse token to obj and get user obj and put into seperate class
+        Map<String, Object> claims = readValue(body);
+        // TODO: use check if map contains correct claims (key, values)
 
         JwtAuthenticationToken authRequest = new JwtAuthenticationToken(authToken);
 
         return getAuthenticationManager().authenticate(authRequest);
     }
+
+    @SuppressWarnings("unchecked")
+ 	protected Map<String, Object> readValue(String val) {
+	 	try {
+	 		return objectMapper.readValue(val, Map.class);
+	 	} catch (IOException e) {
+	 		throw new MalformedJwtException("Unable to read JSON value: " + val, e);
+	 	}
+ 	}
+
 
     /**
      * Make sure the rest of the filterchain is satisfied
